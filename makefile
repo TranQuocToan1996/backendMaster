@@ -43,4 +43,7 @@ migratedown:
 sqlc:
 	sqlc generate
 
-.PHONY: dockerpull runpostgres stoppostgre startpostgre psqlexec shellexec createdb dropdb logs createMigrate migrateup sqlc
+tests:
+	go test -v -cover -race -timeout 1s ./...
+
+.PHONY: dockerpull runpostgres stoppostgre startpostgre psqlexec shellexec createdb dropdb logs createMigrate migrateup sqlc tests
