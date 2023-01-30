@@ -9,7 +9,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var testQueries *Queries
+var (
+	testQueries *Queries
+	testDB      *sql.DB
+)
 
 const (
 	// TODO: Move to env var or config file
@@ -26,6 +29,7 @@ func TestMain(m *testing.M) {
 	}
 
 	testQueries = New(conn)
+	testDB = conn
 	log.Println("Setup query")
 
 	os.Exit(m.Run())

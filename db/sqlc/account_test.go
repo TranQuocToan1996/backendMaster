@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//TODO: fuzz testing instead of random
 //TODO: write tests for entry and transfer
 
 func createRandomAccount(t *testing.T) Account {
