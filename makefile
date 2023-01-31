@@ -35,10 +35,20 @@ createMigrate:
 	migrate create -ext sql -dir $(dbpath) -seq init_schema
 
 migrateup:
+	@echo "update to newest"
 	migrate -path $(dbpath) -database "postgresql://$(rootuser):$(pw)@localhost:5432/$(dbname)?sslmode=disable" -verbose up
 
+migrateup1:
+	@echo "update one more seq"
+	migrate -path $(dbpath) -database "postgresql://$(rootuser):$(pw)@localhost:5432/$(dbname)?sslmode=disable" -verbose up 1
+
 migratedown:
+	@echo "rollback all"
 	migrate -path $(dbpath) -database "postgresql://$(rootuser):$(pw)@localhost:5432/$(dbname)?sslmode=disable" -verbose down
+
+migratedown1:
+	@echo "rollback last"
+	migrate -path $(dbpath) -database "postgresql://$(rootuser):$(pw)@localhost:5432/$(dbname)?sslmode=disable" -verbose down 1
 
 sqlc:
 	sqlc generate
@@ -52,4 +62,4 @@ server:
 mockgen:
 	mockgen -package mockdb -destination db/mock/store.go github.com/TranQuocToan1996/backendMaster/db/sqlc Store 
 
-.PHONY: dockerpull runpostgres stoppostgre startpostgre psqlexec shellexec createdb dropdb logs createMigrate migrateup sqlc tests server mockgen
+.PHONY: dockerpull runpostgres stoppostgre startpostgre psqlexec shellexec createdb dropdb logs createMigrate migrateup sqlc tests server mockgen migrateup1 migratedown1
