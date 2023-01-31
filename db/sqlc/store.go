@@ -89,7 +89,7 @@ func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferR
 		}
 
 		log.Println(txName, "create to entry")
-		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
+		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.ToAccountID,
 			Amount:    arg.Amount, // Receive money
 		})
