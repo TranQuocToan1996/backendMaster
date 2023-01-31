@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/TranQuocToan1996/backendMaster/util"
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
@@ -18,6 +19,7 @@ var (
 // https://medium.com/goingogo/why-use-testmain-for-testing-in-go-dafb52b406bc
 
 func TestMain(m *testing.M) {
+	gin.SetMode(gin.TestMode)
 	config, err := util.LoadConfig("../..")
 	if err != nil {
 		log.Fatal(err)

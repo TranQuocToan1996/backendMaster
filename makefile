@@ -49,4 +49,7 @@ tests:
 server:
 	go run main.go
 
-.PHONY: dockerpull runpostgres stoppostgre startpostgre psqlexec shellexec createdb dropdb logs createMigrate migrateup sqlc tests server 
+mockgen:
+	mockgen -package mockdb -destination db/mock/store.go github.com/TranQuocToan1996/backendMaster/db/sqlc Store 
+
+.PHONY: dockerpull runpostgres stoppostgre startpostgre psqlexec shellexec createdb dropdb logs createMigrate migrateup sqlc tests server mockgen

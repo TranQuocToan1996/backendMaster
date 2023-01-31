@@ -130,9 +130,9 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Account
+	items := []Account{}
 	for rows.Next() {
-		i := Account{}
+		var i Account
 		if err := rows.Scan(
 			&i.ID,
 			&i.Owner,

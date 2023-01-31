@@ -37,7 +37,7 @@ func (s *Server) createAccount(c *gin.Context) {
 }
 
 type getAccountRequest struct {
-	ID int64 `uri:"owner" binding:"required,min=1"`
+	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
 func (s *Server) getAccount(c *gin.Context) {

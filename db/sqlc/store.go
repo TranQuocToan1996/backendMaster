@@ -11,19 +11,24 @@ var (
 	txKey = struct{}{}
 )
 
-type Store struct {
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferResult, error)
+}
+
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		Queries: New(db),
 		db:      db,
 	}
 }
 
-func (s *Store) execTx(ctx context.Context,
+func (s *SQLStore) execTx(ctx context.Context,
 	fn func(*Queries) error) error {
 
 	var (
@@ -66,7 +71,7 @@ type TransferResult struct {
 
 // TransferTx performs a money transfer from one account to the other.
 // It creates the transfer, add account entries, and update accounts' balance within a database transaction
-func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferResult, error) {
+func (s *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferResult, error) {
 	var result TransferResult
 
 	err := s.execTx(ctx, func(q *Queries) error {
