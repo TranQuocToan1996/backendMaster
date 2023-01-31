@@ -6,18 +6,17 @@ import (
 
 	"github.com/TranQuocToan1996/backendMaster/api"
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
+	"github.com/TranQuocToan1996/backendMaster/util"
 	_ "github.com/lib/pq"
 )
 
-const (
-	// TODO: Move to env var or config file
-	dbDriver      = "postgres"
-	dbSource      = "postgresql://root:mysecretpassword@localhost:5432/simple_bank?sslmode=disable"
-	serverAddress = "0.0.0.0:8080"
-)
-
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,5 +24,5 @@ func main() {
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
-	server.Start(serverAddress)
+	server.Start(config.ServerAddress)
 }
