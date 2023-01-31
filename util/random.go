@@ -11,12 +11,6 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-const (
-	USD = "USD"
-	EUR = "EUR"
-	CAD = "CAD"
-)
-
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
 func init() {
