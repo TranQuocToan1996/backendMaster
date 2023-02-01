@@ -1,6 +1,8 @@
 package token
 
 import (
+	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -10,7 +12,11 @@ import (
 )
 
 func TestPasto_HAPPY(t *testing.T) {
-	maker, err := NewPasetoMaker(util.RandomString(32))
+	config, err := util.LoadConfig("../")
+	if err != nil {
+		log.Fatal(err)
+	}
+	maker, err := NewPasetoMaker(config)
 	require.NoError(t, err)
 
 	username := util.RandomOwner()
@@ -32,7 +38,11 @@ func TestPasto_HAPPY(t *testing.T) {
 }
 
 func TestPaseto_Expire(t *testing.T) {
-	maker, err := NewPasetoMaker(util.RandomString(32))
+	config, err := util.LoadConfig("../")
+	if err != nil {
+		log.Fatal(err)
+	}
+	maker, err := NewPasetoMaker(config)
 	require.NoError(t, err)
 
 	username := util.RandomOwner()
@@ -58,7 +68,12 @@ func TestPaseto_Invalid(t *testing.T) {
 	token, err := tokenObj.SignedString(jwt.UnsafeAllowNoneSignatureType)
 	require.NoError(t, err)
 
-	maker, err := NewPasetoMaker(util.RandomString(32))
+	config, err := util.LoadConfig("../")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(len(config.TokenSymetricKey))
+	maker, err := NewPasetoMaker(config)
 	require.NoError(t, err)
 
 	getPayload, err := maker.VerifyToken(token)
