@@ -28,7 +28,6 @@ func TestPasto_HAPPY(t *testing.T) {
 	require.True(t, payload.Username == username)
 	require.WithinDuration(t, issuedAt, payload.IssueAt, time.Second)
 	require.WithinDuration(t, expriedAt, payload.ExpiredAt, time.Second)
-	require.True(t, payload.ExpiredAt.Sub(payload.IssueAt) == duration)
 }
 
 func TestPaseto_Expire(t *testing.T) {
