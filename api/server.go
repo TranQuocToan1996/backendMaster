@@ -37,7 +37,7 @@ func (s *Server) setupRouter() {
 }
 
 func NewServer(config util.Config, store db.Store) (*Server, error) {
-	tokenMaker, err := token.NewPasetoMaker(config)
+	tokenMaker, err := token.NewPasetoMaker(config.TokenSymetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cant create token marker %w", err)
 	}
