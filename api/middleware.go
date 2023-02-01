@@ -32,7 +32,7 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 			return
 		}
 
-		if strings.EqualFold(authorizationTypeBearer, fields[0]) {
+		if !strings.EqualFold(authorizationTypeBearer, fields[0]) {
 			err := fmt.Errorf("authorization type is not Bearer, got: %v", fields[0])
 			c.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
@@ -46,6 +46,6 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 		}
 
 		c.Set(authorizationPayloadKey, payload)
-        c.Next()
+		c.Next()
 	}
 }

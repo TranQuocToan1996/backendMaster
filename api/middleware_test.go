@@ -25,7 +25,7 @@ func addAuthorization(
 
 	authorizationHeader := fmt.Sprintf("%s %s", authorizationType, token)
 
-	request.Header.Set(authorizationType, authorizationHeader)
+	request.Header.Set(authorizationHeaderKey, authorizationHeader)
 }
 
 func TestAuthMiddleware(t *testing.T) {

@@ -17,12 +17,12 @@ type createAccountRequest struct {
 
 func (s *Server) getAuthPayload(c *gin.Context, key string) *token.Payload {
 	authPayload := c.MustGet(key)
-	payload, ok := authPayload.(token.Payload)
+	payload, ok := authPayload.(*token.Payload)
 	if !ok {
 		return nil
 	}
 
-	return &payload
+	return payload
 }
 
 func (s *Server) createAccount(c *gin.Context) {

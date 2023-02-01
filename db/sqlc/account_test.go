@@ -36,11 +36,6 @@ func createRandomAccount(t *testing.T) Account {
 	return account
 }
 
-func TestCreateAccount(t *testing.T) {
-	t.Parallel()
-	createRandomAccount(t)
-}
-
 func TestGetAccount(t *testing.T) {
 	setAcc := createRandomAccount(t)
 	t.Parallel()
