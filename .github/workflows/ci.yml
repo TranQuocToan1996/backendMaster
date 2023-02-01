@@ -21,6 +21,8 @@ jobs:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: mysecretpassword
           POSTGRES_DB: simple_bank
+          TOKEN_SYMMETRIC_KEY: chacha20poly1305-Must20Character
+          ACCESS_TOKEN_DURATION: 15m
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
