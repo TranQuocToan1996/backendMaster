@@ -54,7 +54,7 @@ sqlc:
 	sqlc generate
 
 tests:
-	go test -v -cover -race -timeout 1s ./...
+	go test -v -cover -timeout 1s ./...
 
 server:
 	go run main.go

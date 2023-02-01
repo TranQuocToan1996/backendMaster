@@ -19,7 +19,7 @@ var (
 // https://medium.com/goingogo/why-use-testmain-for-testing-in-go-dafb52b406bc
 
 func TestMain(m *testing.M) {
-	gin.SetMode(gin.TestMode)
+	gin.SetMode(gin.ReleaseMode)
 	config, err := util.LoadConfig("../..")
 	if err != nil {
 		log.Fatal(err)

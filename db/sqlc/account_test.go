@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"log"
 	"testing"
 
 	"github.com/TranQuocToan1996/backendMaster/util"
@@ -14,31 +13,55 @@ import (
 //TODO: write tests for entry and transfer
 
 func createRandomAccount(t *testing.T) Account {
+	user := createRandomUser(t)
+
 	arg := CreateAccountParams{
-		Owner:    util.RandomOwner(),
+		Owner:    user.Username,
 		Balance:  util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
 
 	account, err := testQueries.CreateAccount(context.Background(), arg)
 	require.NoError(t, err)
-
 	require.NotEmpty(t, account)
-	require.NotZero(t, account.ID)
-	require.NotZero(t, account.CreatedAt)
 
 	require.Equal(t, arg.Owner, account.Owner)
 	require.Equal(t, arg.Balance, account.Balance)
 	require.Equal(t, arg.Currency, account.Currency)
 
-	log.Println("test create account with: ", account)
+	require.NotZero(t, account.ID)
+	require.NotZero(t, account.CreatedAt)
 
 	return account
 }
 
+func createRandomUser(t *testing.T) User {
+	hashedPassword, err := util.HashPassword(util.RandomString(6))
+	require.NoError(t, err)
+
+	arg := CreateUserParams{
+		Username:       util.RandomOwner(),
+		HashedPassword: hashedPassword,
+		FullName:       util.RandomOwner(),
+		Email:          util.RandomEmail(),
+	}
+
+	user, err := testQueries.CreateUser(context.Background(), arg)
+	require.NoError(t, err)
+	require.NotEmpty(t, user)
+
+	require.Equal(t, arg.Username, user.Username)
+	require.Equal(t, arg.HashedPassword, user.HashedPassword)
+	require.Equal(t, arg.FullName, user.FullName)
+	require.Equal(t, arg.Email, user.Email)
+	require.True(t, user.PasswordChangedAt.IsZero())
+	require.NotZero(t, user.CreatedAt)
+
+	return user
+}
+
 func TestGetAccount(t *testing.T) {
 	setAcc := createRandomAccount(t)
-	t.Parallel()
 
 	account, err := testQueries.GetAccount(context.Background(), setAcc.ID)
 	require.NoError(t, err)
@@ -53,7 +76,6 @@ func TestGetAccount(t *testing.T) {
 
 func TestUpdateAccount(t *testing.T) {
 	setAcc := createRandomAccount(t)
-	t.Parallel()
 	updateMoney := util.RandomMoney()
 
 	arg := UpdateAccountParams{
@@ -74,7 +96,6 @@ func TestUpdateAccount(t *testing.T) {
 
 func TestDeleteAccount(t *testing.T) {
 	setAcc := createRandomAccount(t)
-	t.Parallel()
 
 	err := testQueries.DeleteAccount(context.Background(), setAcc.ID)
 	require.NoError(t, err)

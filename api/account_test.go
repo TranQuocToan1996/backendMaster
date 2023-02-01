@@ -106,7 +106,6 @@ func TestGetAccountAPI(t *testing.T) {
 		tc := test
 
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			controller := gomock.NewController(t)
 			defer controller.Finish()
 
