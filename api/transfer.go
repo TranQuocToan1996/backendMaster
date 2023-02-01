@@ -24,8 +24,20 @@ func (s *Server) createTransfer(c *gin.Context) {
 		return
 	}
 
-	if !s.validAccount(c, req.ToAccountID, req.Currency) ||
-		!s.validAccount(c, req.FromAccountID, req.Currency) {
+	fromAccount, valid := s.validAccount(c, req.ToAccountID, req.Currency)
+	if !valid {
+		return
+	}
+
+	payload := s.getAuthPayload(c, authorizationPayloadKey)
+	if payload.Username != fromAccount.Owner {
+		err := errors.New("from account does not belong to user")
+		c.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	_, valid = s.validAccount(c, req.FromAccountID, req.Currency)
+	if !valid {
 		return
 	}
 
@@ -44,23 +56,23 @@ func (s *Server) createTransfer(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func (s *Server) validAccount(c *gin.Context, accountID int64, currency string) bool {
+func (s *Server) validAccount(c *gin.Context, accountID int64, currency string) (db.Account, bool) {
 	account, err := s.store.GetAccount(c, accountID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			c.JSON(http.StatusNotFound, errorResponse(err))
-			return false
+			return db.Account{}, false
 		}
 
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
-		return false
+		return db.Account{}, false
 	}
 
 	if account.Currency != currency {
 		err := fmt.Errorf("miss match currency code %v and %v", currency, account.Currency)
 		c.JSON(http.StatusNotFound, errorResponse(err))
-		return false
+		return db.Account{}, false
 	}
 
-	return true
+	return account, true
 }

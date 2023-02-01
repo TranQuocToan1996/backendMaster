@@ -6,13 +6,23 @@ import (
 	"net/http"
 
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
+	"github.com/TranQuocToan1996/backendMaster/token"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )
 
 type createAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
 	Currency string `json:"currency" binding:"required,currency"`
+}
+
+func (s *Server) getAuthPayload(c *gin.Context, key string) *token.Payload {
+	authPayload := c.MustGet(key)
+	payload, ok := authPayload.(token.Payload)
+	if !ok {
+		return nil
+	}
+
+	return &payload
 }
 
 func (s *Server) createAccount(c *gin.Context) {
@@ -22,8 +32,10 @@ func (s *Server) createAccount(c *gin.Context) {
 		return
 	}
 
+	payload := s.getAuthPayload(c, authorizationPayloadKey)
+
 	arg := db.CreateAccountParams{
-		Owner:    req.Owner,
+		Owner:    payload.Username,
 		Currency: req.Currency,
 		Balance:  0,
 	}
@@ -66,6 +78,13 @@ func (s *Server) getAccount(c *gin.Context) {
 		return
 	}
 
+	payload := s.getAuthPayload(c, authorizationPayloadKey)
+	if account.Owner != payload.Username {
+		err := errors.New("account doesnt belong to user")
+		c.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	c.JSON(http.StatusOK, account)
 }
 
@@ -81,7 +100,9 @@ func (s *Server) listAccount(c *gin.Context) {
 		return
 	}
 
+	payload := s.getAuthPayload(c, authorizationPayloadKey)
 	account, err := s.store.ListAccounts(c, db.ListAccountsParams{
+		Owner:  payload.Username,
 		Limit:  int32(req.PageSize),
 		Offset: (int32(req.PageID) - 1) * int32(req.PageSize),
 	})
