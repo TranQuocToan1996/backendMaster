@@ -1,26 +1,49 @@
 package api
 
 import (
+	"fmt"
+
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
+	"github.com/TranQuocToan1996/backendMaster/token"
+	"github.com/TranQuocToan1996/backendMaster/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 )
 
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	router     *gin.Engine
+	tokenMaker token.Maker
 }
 
-func (s *Server) Start(address string) error {
-	return s.router.Run(address)
+func (s *Server) Start() error {
+	return s.router.Run(s.config.ServerAddress)
 }
 
-func NewServer(store db.Store) *Server {
+func (s *Server) setupRouter() {
 	router := gin.Default()
+	router.POST("/users", s.createUser)
+	router.POST("/users/login", s.loginUser)
+
+	router.POST("/accounts", s.createAccount)
+	router.GET("/accounts/:id", s.getAccount)
+	router.GET("/accounts", s.listAccount)
+
+	router.POST("/transfers", s.createTransfer)
+	s.router = router
+}
+
+func NewServer(config util.Config, store db.Store) (*Server, error) {
+	tokenMaker, err := token.NewPasetoMaker(config)
+	if err != nil {
+		return nil, fmt.Errorf("cant create token marker %w", err)
+	}
+
 	server := &Server{
-		store:  store,
-		router: router,
+		store:      store,
+		tokenMaker: tokenMaker,
 	}
 
 	v, ok := binding.Validator.Engine().(*validator.Validate)
@@ -28,14 +51,9 @@ func NewServer(store db.Store) *Server {
 		v.RegisterValidation("currency", validCurrency)
 	}
 
-	router.POST("/users", server.createUser)
+	server.setupRouter()
 
-	router.POST("/accounts", server.createAccount)
-	router.GET("/accounts/:id", server.getAccount)
-	router.GET("/accounts", server.listAccount)
-
-	router.POST("/transfers", server.createTransfer)
-	return server
+	return server, nil
 }
 
 func errorResponse(err error) gin.H {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TranQuocToan1996/backendMaster/util"
 	"github.com/o1egl/paseto"
 	"golang.org/x/crypto/chacha20poly1305"
 )
@@ -13,14 +14,14 @@ type PasetoMakerV2 struct {
 	symetricKey []byte
 }
 
-func NewPasetoMaker(symetricKey string) (Maker, error) {
-	if len(symetricKey) != chacha20poly1305.KeySize {
+func NewPasetoMaker(config util.Config) (Maker, error) {
+	if len(config.TokenSymetricKey) != chacha20poly1305.KeySize {
 		return nil, fmt.Errorf("invalid key size")
 	}
 
 	maker := &PasetoMakerV2{
 		paseto:      paseto.NewV2(),
-		symetricKey: []byte(symetricKey),
+		symetricKey: []byte(config.TokenSymetricKey),
 	}
 
 	return maker, nil
