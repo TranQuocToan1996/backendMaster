@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
 	"github.com/TranQuocToan1996/backendMaster/token"
@@ -19,6 +20,7 @@ type Server struct {
 }
 
 func (s *Server) Start() error {
+	log.Println("config is ", s.config.ServerAddress)
 	return s.router.Run(s.config.ServerAddress)
 }
 

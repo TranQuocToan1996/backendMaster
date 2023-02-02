@@ -1,0 +1,27 @@
+
+version: "3.9"
+services:
+  postgres:
+    image: postgres:14-alpine
+    environment:
+    - POSTGRES_USER=root
+    - POSTGRES_PASSWORD=mysecretpassword
+    - POSTGRES_DB=simple_bank
+    - TOKEN_SYMMETRIC_KEY=chacha20poly1305-Must20Character
+    - ACCESS_TOKEN_DURATION=15m
+    - SERVER_ADDRESS=0.0.0.0:8080
+  api:
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_SOURCE=postgresql://root:mysecretpassword@postgres:5432/simple_bank?sslmode=disable
+      - TOKEN_SYMMETRIC_KEY=chacha20poly1305-Must20Character
+      - ACCESS_TOKEN_DURATION=15m
+      - SERVER_ADDRESS=0.0.0.0:8080
+    depends_on:
+      - postgres
+    entrypoint: ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
+    command: ["/app/main"]
