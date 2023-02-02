@@ -1,35 +1,36 @@
-acontainername=postgres12
+containernameposgre=postgres12
 rootuser=root
 pw=mysecretpassword
 dbname=simple_bank
 dbpath=db/migration
+network=networksimplebank
 
 dockerpull:
 	docker pull postgres:12-alpine
 
 runpostgres:
-	docker run --name $(containername) -e POSTGRES_USER=$(rootuser) -e POSTGRES_PASSWORD=$(pw) -p 5432:5432 -d postgres:12-alpine
+	docker run --name $(containernameposgre) --network $(network) -e POSTGRES_USER=$(rootuser) -e POSTGRES_PASSWORD=$(pw) -p 5432:5432 -d postgres:12-alpine
 
 stoppostgre:
-	docker stop $(containername)
+	docker stop $(containernameposgre)
 
 startpostgre:
-	docker start $(containername)
+	docker start $(containernameposgre)
 
 psqlexec:
-	docker exec -it $(containername) psql -U $(rootuser)
+	docker exec -it $(containernameposgre) psql -U $(rootuser)
 
 shellexec:
-	docker exec -it $(containername) /bin/sh
+	docker exec -it $(containernameposgre) /bin/sh
 
 createdb:
-	docker exec -it $(containername) createdb --username=$(rootuser) --owner=$(rootuser) $(dbname) 
+	docker exec -it $(containernameposgre) createdb --username=$(rootuser) --owner=$(rootuser) $(dbname) 
 
 dropdb:
-	docker exec -it $(containername) dropdb $(dbname) 
+	docker exec -it $(containernameposgre) dropdb $(dbname) 
 
 logs:
-	docker logs $(containername)
+	docker logs $(containernameposgre)
 
 createMigrate:
 	migrate create -ext sql -dir $(dbpath) -seq init_schema
@@ -68,9 +69,19 @@ mockgen:
 gitpush: tests
 	git push
 
+buildsimplebank:
+	docker build -t simplebank:latest .
+
+runsimplebank:
+	docker run --name simplebank --network $(network) -p 8080:8080 -e GIN_MODE=release -e DB_SOURCE="postgresql://root:mysecretpassword@$(containernameposgre):5432/simple_bank?sslmode=disable" simplebank:latest
+
+createnetwork:
+	docker network create $(network)
 
 
-.PHONY: dockerpull runpostgres stoppostgre startpostgre psqlexec shellexec createdb dropdb logs createMigrate migrateup sqlc tests server mockgen migrateup1 migratedown1
+
+
+.PHONY: dockerpull runpostgres stoppostgre startpostgre psqlexec shellexec createdb dropdb logs createMigrate migrateup sqlc tests server mockgen migrateup1 migratedown1 buildsimplebank runsimplebank
 
 
 
