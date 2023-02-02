@@ -16,6 +16,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Println(config)
+
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal(err)
