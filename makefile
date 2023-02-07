@@ -84,10 +84,16 @@ createnetwork:
 genkeychacha:
 	openssl rand -hex 64 | head -c 32
 
+db_docs:
+	dbdocs build doc/db.dbml
+
+db_schema:
+	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
 
 
 
-.PHONY: dockerpull runpostgres stoppostgre startpostgre psqlexec shellexec createdb dropdb logs createMigrate migrateup sqlc tests server mockgen migrateup1 migratedown1 buildsimplebank runsimplebank
+
+.PHONY: dockerpull runpostgres stoppostgre startpostgre psqlexec shellexec createdb dropdb logs createMigrate migrateup sqlc tests server mockgen migrateup1 migratedown1 buildsimplebank runsimplebank db_docs db_schema
 
 
 
