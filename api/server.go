@@ -20,8 +20,8 @@ type Server struct {
 }
 
 func (s *Server) Start() error {
-	log.Println("config is ", s.config.ServerAddress)
-	return s.router.Run(s.config.ServerAddress)
+	log.Println("config is ", s.config.HTTPServerAddress)
+	return s.router.Run(s.config.HTTPServerAddress)
 }
 
 func (s *Server) setupRouter() {
