@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
+	"github.com/TranQuocToan1996/backendMaster/model"
 	"github.com/TranQuocToan1996/backendMaster/token"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
@@ -32,7 +33,7 @@ func (s *Server) createAccount(c *gin.Context) {
 		return
 	}
 
-	payload := s.getAuthPayload(c, authorizationPayloadKey)
+	payload := s.getAuthPayload(c, model.AuthorizationPayloadKey)
 
 	arg := db.CreateAccountParams{
 		Owner:    payload.Username,
@@ -78,7 +79,7 @@ func (s *Server) getAccount(c *gin.Context) {
 		return
 	}
 
-	payload := s.getAuthPayload(c, authorizationPayloadKey)
+	payload := s.getAuthPayload(c, model.AuthorizationPayloadKey)
 	if account.Owner != payload.Username {
 		err := errors.New("account doesnt belong to user")
 		c.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -100,7 +101,7 @@ func (s *Server) listAccount(c *gin.Context) {
 		return
 	}
 
-	payload := s.getAuthPayload(c, authorizationPayloadKey)
+	payload := s.getAuthPayload(c, model.AuthorizationPayloadKey)
 	account, err := s.store.ListAccounts(c, db.ListAccountsParams{
 		Owner:  payload.Username,
 		Limit:  int32(req.PageSize),

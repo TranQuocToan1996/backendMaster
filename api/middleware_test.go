@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TranQuocToan1996/backendMaster/model"
 	"github.com/TranQuocToan1996/backendMaster/token"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
@@ -25,7 +26,7 @@ func addAuthorization(
 
 	authorizationHeader := fmt.Sprintf("%s %s", authorizationType, token)
 
-	request.Header.Set(authorizationHeaderKey, authorizationHeader)
+	request.Header.Set(model.AuthorizationHeaderKey, authorizationHeader)
 }
 
 func TestAuthMiddleware(t *testing.T) {
@@ -37,7 +38,7 @@ func TestAuthMiddleware(t *testing.T) {
 		{
 			name: "OK",
 			setupAuth: func(t *testing.T, req *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, req, tokenMaker, authorizationTypeBearer, "user", time.Minute)
+				addAuthorization(t, req, tokenMaker, model.AuthorizationTypeBearer, "user", time.Minute)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -71,7 +72,7 @@ func TestAuthMiddleware(t *testing.T) {
 		{
 			name: "Expired token Authorization",
 			setupAuth: func(t *testing.T, req *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, req, tokenMaker, authorizationTypeBearer, "user", -time.Minute)
+				addAuthorization(t, req, tokenMaker, model.AuthorizationTypeBearer, "user", -time.Minute)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)

@@ -1,0 +1,16 @@
+syntax = "proto3";
+package pb;
+option go_package = "github.com/TranQuocToan1996/backendMaster/pb";
+
+import "user.proto";
+
+message UpdateUserRequest {
+    string username  = 1;
+    optional string full_name = 2;
+    optional string email     = 3;
+    optional string password  = 4;
+}
+
+message UpdateUserResponse {
+    User user = 1;
+}

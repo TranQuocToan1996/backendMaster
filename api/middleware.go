@@ -6,19 +6,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/TranQuocToan1996/backendMaster/model"
 	"github.com/TranQuocToan1996/backendMaster/token"
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	authorizationHeaderKey  = "authorization"
-	authorizationTypeBearer = "Bearer"
-	authorizationPayloadKey = "payloadKey"
-)
-
 func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authorizationHeader := c.GetHeader(authorizationHeaderKey)
+		authorizationHeader := c.GetHeader(model.AuthorizationHeaderKey)
 		if len(authorizationHeader) == 0 {
 			err := errors.New("authorization header is not provided")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
@@ -32,7 +27,7 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 			return
 		}
 
-		if !strings.EqualFold(authorizationTypeBearer, fields[0]) {
+		if !strings.EqualFold(model.AuthorizationTypeBearer, fields[0]) {
 			err := fmt.Errorf("authorization type is not Bearer, got: %v", fields[0])
 			c.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
@@ -45,7 +40,7 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 			return
 		}
 
-		c.Set(authorizationPayloadKey, payload)
+		c.Set(model.AuthorizationPayloadKey, payload)
 		c.Next()
 	}
 }

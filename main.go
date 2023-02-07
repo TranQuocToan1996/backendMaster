@@ -12,6 +12,9 @@ import (
 	"github.com/TranQuocToan1996/backendMaster/gapi"
 	"github.com/TranQuocToan1996/backendMaster/pb"
 	"github.com/TranQuocToan1996/backendMaster/util"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"github.com/rakyll/statik/fs"
@@ -35,9 +38,26 @@ func main() {
 		log.Fatal(err)
 	}
 
+	migrateDatabase(config.MigrationURL, config.DBSource)
+
 	store := db.NewStore(conn)
 	go gatewayServer(config, store)
 	gRPCServer(config, store)
+}
+
+func migrateDatabase(migrationURL, dbSource string) {
+	migration, err := migrate.New(migrationURL, dbSource)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = migration.Up()
+	if err != nil && err != migrate.ErrNoChange {
+		log.Fatal(err)
+	}
+
+	log.Println("migration database successfully")
+
 }
 
 func gRPCServer(config util.Config, store db.Store) {

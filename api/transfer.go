@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
+	"github.com/TranQuocToan1996/backendMaster/model"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,7 +30,7 @@ func (s *Server) createTransfer(c *gin.Context) {
 		return
 	}
 
-	payload := s.getAuthPayload(c, authorizationPayloadKey)
+	payload := s.getAuthPayload(c, model.AuthorizationPayloadKey)
 	if payload.Username != fromAccount.Owner {
 		err := errors.New("from account does not belong to user")
 		c.JSON(http.StatusUnauthorized, errorResponse(err))
