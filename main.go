@@ -28,11 +28,19 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const (
+	development = "development"
+	production  = "production"
+)
+
 func main() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	config, err := util.LoadConfig(".")
 	if err != nil {
 		log.Fatal().Msg(err.Error())
+	}
+
+	if config.Environment == development {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	log.Print(config)
