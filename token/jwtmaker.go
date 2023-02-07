@@ -22,7 +22,7 @@ func (j *JWTMaker) CreateToken(username string, duration time.Duration) (string,
 		return "", payload, err
 	}
 
-	// TODO: Change alg
+	//TODO: Change alg
 	tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
 	token, err := tokenObj.SignedString([]byte(j.secretKey))
@@ -33,7 +33,7 @@ func (j *JWTMaker) CreateToken(username string, duration time.Duration) (string,
 func (j *JWTMaker) VerifyToken(token string) (*Payload, error) {
 	var (
 		signKeyProvider = func(t *jwt.Token) (interface{}, error) {
-			// TODO: Change alg
+			//TODO: Change alg
 			_, ok := t.Method.(*jwt.SigningMethodHMAC)
 			if !ok {
 				return nil, ErrInvalidToken

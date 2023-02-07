@@ -4,12 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
 	"github.com/TranQuocToan1996/backendMaster/pb"
 	"github.com/TranQuocToan1996/backendMaster/token"
 	"github.com/TranQuocToan1996/backendMaster/util"
+	"github.com/TranQuocToan1996/backendMaster/worker"
 	"github.com/gin-gonic/gin"
+	"github.com/hibiken/asynq"
 	"github.com/lib/pq"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,9 +21,28 @@ import (
 
 type Server struct {
 	pb.UnimplementedSimpleBankServer
-	config     util.Config
-	store      db.Store
-	tokenMaker token.Maker
+	config          util.Config
+	store           db.Store
+	tokenMaker      token.Maker
+	taskDistributor worker.TaskDistributor
+}
+
+func NewServer(config util.Config, store db.Store,
+	taskDistributor worker.TaskDistributor) (*Server, error) {
+
+	tokenMaker, err := token.NewPasetoMaker(config.TokenSymetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cant create token marker %w", err)
+	}
+
+	server := &Server{
+		store:           store,
+		tokenMaker:      tokenMaker,
+		config:          config,
+		taskDistributor: taskDistributor,
+	}
+
+	return server, nil
 }
 
 func (s *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
@@ -34,26 +56,42 @@ func (s *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb
 		return nil, status.Errorf(codes.Internal, "fail to get password %s", err)
 	}
 
-	arg := db.CreateUserParams{
-		Username:       req.GetUsername(),
-		HashedPassword: hashedPassword,
-		FullName:       req.GetFullName(),
-		Email:          req.GetEmail(),
+	arg := db.CreateUserTxParams{
+		CreateUserParams: db.CreateUserParams{
+			Username:       req.GetUsername(),
+			HashedPassword: hashedPassword,
+			FullName:       req.GetFullName(),
+			Email:          req.GetEmail(),
+		},
+		AfterCreateTasks: func(user db.User) error {
+			taskPayload := &worker.PayloadSendVerifyEmail{
+				Username: req.Username,
+			}
+
+			otps := []asynq.Option{
+				asynq.MaxRetry(10),
+				asynq.ProcessIn(10 * time.Second),
+				asynq.Queue(worker.QueueCritical),
+			}
+
+			return s.taskDistributor.DistributeTaskSendEmail(ctx, taskPayload, otps...)
+		},
 	}
 
-	user, err := s.store.CreateUser(ctx, arg)
+	result, err := s.store.CreateUserTx(ctx, arg)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
 			case "unique_violation":
-				return nil, status.Errorf(codes.AlreadyExists, "user already exist %s", err)
+				return nil, status.Errorf(codes.AlreadyExists,
+					"user already exist %s", err)
 			}
 		}
 		return nil, status.Errorf(codes.Internal, "fail to create user %s", err)
 	}
 
 	resp := &pb.CreateUserResponse{
-		User: convertUser(user),
+		User: convertUser(result.User),
 	}
 
 	return resp, nil
@@ -84,7 +122,8 @@ func (s *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (*pb.L
 		s.config.AccessTokenDuration,
 	)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "fail to create access token %s", err)
+		return nil, status.Errorf(codes.Internal,
+			"fail to create access token %s", err)
 	}
 
 	refreshToken, refreshPayload, err := s.tokenMaker.CreateToken(
@@ -92,7 +131,8 @@ func (s *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (*pb.L
 		s.config.RefreshTokenDuration,
 	)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "fail to create refresh token %s", err)
+		return nil, status.Errorf(codes.Internal,
+			"fail to create refresh token %s", err)
 	}
 
 	mtdt := s.extractMetadata(ctx)
@@ -120,21 +160,6 @@ func (s *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (*pb.L
 	}
 
 	return resp, nil
-}
-
-func NewServer(config util.Config, store db.Store) (*Server, error) {
-	tokenMaker, err := token.NewPasetoMaker(config.TokenSymetricKey)
-	if err != nil {
-		return nil, fmt.Errorf("cant create token marker %w", err)
-	}
-
-	server := &Server{
-		store:      store,
-		tokenMaker: tokenMaker,
-		config:     config,
-	}
-
-	return server, nil
 }
 
 func errorResponse(err error) gin.H {

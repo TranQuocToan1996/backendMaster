@@ -16,6 +16,7 @@ type Config struct {
 	TokenSymetricKey     string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
 	MigrationURL         string        `mapstructure:"MIGRATION_URL"`
 	Environment          string        `mapstructure:"ENVIRONMENT"`
+	RedisAddress         string        `mapstructure:"REDIS_ADDRESS"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
