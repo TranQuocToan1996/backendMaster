@@ -13,7 +13,6 @@ COPY --from=builder /app/main .
 COPY app.env .
 COPY start.sh .
 COPY wait-for.sh .
-COPY --from=builder /app/migrate ./migrate   
 COPY db/migration ./migration 
 
 EXPOSE 8080
