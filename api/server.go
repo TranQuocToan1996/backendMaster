@@ -2,7 +2,8 @@ package api
 
 import (
 	"fmt"
-	"log"
+
+	"github.com/rs/zerolog/log"
 
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
 	"github.com/TranQuocToan1996/backendMaster/token"
@@ -20,7 +21,7 @@ type Server struct {
 }
 
 func (s *Server) Start() error {
-	log.Println("config is ", s.config.HTTPServerAddress)
+	log.Info().Msg("config is " + s.config.HTTPServerAddress)
 	return s.router.Run(s.config.HTTPServerAddress)
 }
 

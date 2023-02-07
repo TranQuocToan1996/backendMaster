@@ -2,9 +2,10 @@ package db
 
 import (
 	"database/sql"
-	"log"
 	"os"
 	"testing"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/TranQuocToan1996/backendMaster/util"
 	"github.com/gin-gonic/gin"
@@ -22,17 +23,17 @@ func TestMain(m *testing.M) {
 	gin.SetMode(gin.TestMode)
 	config, err := util.LoadConfig("../..")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	testQueries = New(conn)
 	testDB = conn
-	log.Println("Setup query")
+	log.Info().Msg("Setup query")
 
 	os.Exit(m.Run())
 }

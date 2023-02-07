@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"database/sql"
-	"log"
 	"net"
 	"net/http"
+	"os"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/TranQuocToan1996/backendMaster/api"
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
@@ -13,29 +15,31 @@ import (
 	"github.com/TranQuocToan1996/backendMaster/pb"
 	"github.com/TranQuocToan1996/backendMaster/util"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	_ "github.com/lib/pq"
 	"github.com/rakyll/statik/fs"
+	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	_ "github.com/TranQuocToan1996/backendMaster/doc/statik"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/lib/pq"
 )
 
 func main() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	config, err := util.LoadConfig(".")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
-	log.Println(config)
+	log.Print(config)
 
 	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	migrateDatabase(config.MigrationURL, config.DBSource)
@@ -48,43 +52,45 @@ func main() {
 func migrateDatabase(migrationURL, dbSource string) {
 	migration, err := migrate.New(migrationURL, dbSource)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	err = migration.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
-	log.Println("migration database successfully")
+	log.Info().Msg("migration database successfully")
 
 }
 
 func gRPCServer(config util.Config, store db.Store) {
-	gRPCserver := grpc.NewServer()
+	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
+	gRPCserver := grpc.NewServer(grpcLogger)
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
+
 	pb.RegisterSimpleBankServer(gRPCserver, server)
 	reflection.Register(gRPCserver)
 
 	lis, err := net.Listen("tcp", config.GRPCServerAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
-	log.Printf("start gRPC at %v", lis.Addr())
+	log.Info().Msgf("start gRPC at %v", lis.Addr())
 	err = gRPCserver.Serve(lis)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 }
 
 func gatewayServer(config util.Config, store db.Store) {
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	jsonOption := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
@@ -102,12 +108,12 @@ func gatewayServer(config util.Config, store db.Store) {
 
 	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	statikFs, err := fs.New()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 	swaggerHandle := http.StripPrefix("/swagger/", http.FileServer(statikFs))
 
@@ -117,24 +123,24 @@ func gatewayServer(config util.Config, store db.Store) {
 
 	lis, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
-	log.Printf("start HTTP gateway at %v", lis.Addr())
+	log.Info().Msgf("start HTTP gateway at %v", lis.Addr())
 	err = http.Serve(lis, mux)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 }
 
 func ginServer(config util.Config, store db.Store) {
 	server, err := api.NewServer(config, store)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	err = server.Start()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 }
