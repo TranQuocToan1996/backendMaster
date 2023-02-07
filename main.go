@@ -14,9 +14,12 @@ import (
 	"github.com/TranQuocToan1996/backendMaster/util"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
+	"github.com/rakyll/statik/fs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
+
+	_ "github.com/TranQuocToan1996/backendMaster/doc/statik"
 )
 
 func main() {
@@ -82,11 +85,15 @@ func gatewayServer(config util.Config, store db.Store) {
 		log.Fatal(err)
 	}
 
-	fs := http.FileServer(http.Dir("./doc/swagger"))
-	mux := http.NewServeMux()
+	statikFs, err := fs.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+	swaggerHandle := http.StripPrefix("/swagger/", http.FileServer(statikFs))
 
+	mux := http.NewServeMux()
 	mux.Handle("/", grpcMux)
-	mux.Handle("/swagger/", http.StripPrefix("/swagger/", fs))
+	mux.Handle("/swagger/", swaggerHandle)
 
 	lis, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {
