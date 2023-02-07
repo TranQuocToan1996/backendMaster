@@ -2,6 +2,7 @@ package gapi
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -72,8 +73,10 @@ func HttpLogger(handler http.Handler) http.Handler {
 			logger = log.Error().Bytes("body", rec.Body)
 		}
 
-		logger.Str("protocol", "http").
+		logger.Str("protocol", req.Proto).
 			Str("method", req.Method).
+			Str("header", fmt.Sprint(req.Header)).
+			Int64("contentLength", req.ContentLength).
 			Str("path", req.RequestURI).
 			Int("status_code", rec.StatusCode).
 			Str("status_text", http.StatusText(rec.StatusCode)).
