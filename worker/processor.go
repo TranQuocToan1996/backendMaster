@@ -3,6 +3,7 @@ package worker
 import (
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
 	"github.com/hibiken/asynq"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/net/context"
 )
 
@@ -30,13 +31,27 @@ func (r *RedisTaskProcessor) Start() error {
 }
 
 func NewRedisTaskProcessor(redisOtps asynq.RedisClientOpt, store db.Store) TaskProcessor {
+	var (
+		errHandle = func(ctx context.Context, task *asynq.Task, err error) {
+			log.Error().
+				Err(err).
+				Str("type", task.Type()).
+				Bytes("payload", task.Payload()).
+				Msg("process start fail")
+		}
+
+		ratioPriorityQueues = map[string]int{
+			QueueCritical: 8,
+			QueueDefault:  2,
+		}
+	)
+
 	server := asynq.NewServer(
 		redisOtps,
 		asynq.Config{
-			Queues: map[string]int{
-				QueueCritical: 70, // 70%
-				QueueDefault:  30,
-			},
+			Queues:       ratioPriorityQueues,
+			ErrorHandler: asynq.ErrorHandlerFunc(errHandle),
+			Logger:       NewLoggerAsynq(),
 		},
 	)
 
