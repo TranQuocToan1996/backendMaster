@@ -39,6 +39,9 @@ migrateup:
 	@echo "update to newest"
 	migrate -path $(dbpath) -database "postgresql://$(rootuser):$(pw)@localhost:5432/$(dbname)?sslmode=disable" -verbose up
 
+migrateupaws:
+	migrate -path $(dbpath) -database "postgresql://root:7B6D9j9R8DIU3xlZT6fw@database-1.cvsputm32sxh.ap-northeast-1.rds.amazonaws.com:5432/simple_bank" -verbose up
+
 migrateup1:
 	@echo "update one more seq"
 	migrate -path $(dbpath) -database "postgresql://$(rootuser):$(pw)@localhost:5432/$(dbname)?sslmode=disable" -verbose up 1
@@ -77,6 +80,9 @@ runsimplebank:
 
 createnetwork:
 	docker network create $(network)
+	
+genkeychacha:
+	openssl rand -hex 64 | head -c 32
 
 
 
