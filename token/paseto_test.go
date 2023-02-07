@@ -18,7 +18,7 @@ func TestPasto_HAPPY(t *testing.T) {
 	issuedAt := time.Now()
 	expriedAt := issuedAt.Add(duration)
 
-	token, err := maker.CreateToken(username, duration)
+	token, _, err := maker.CreateToken(username, duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -36,7 +36,7 @@ func TestPaseto_Expire(t *testing.T) {
 
 	username := util.RandomOwner()
 
-	token, err := maker.CreateToken(username, -time.Minute)
+	token, _, err := maker.CreateToken(username, -time.Minute)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 

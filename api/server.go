@@ -30,6 +30,7 @@ func (s *Server) setupRouter() {
 
 	router.POST("/users", s.createUser)
 	router.POST("/users/login", s.loginUser)
+	router.POST("/token/renew", s.renewAccessToken)
 
 	authGroup := router.Group("/").Use(authMiddleware(s.tokenMaker))
 	authGroup.POST("/accounts", s.createAccount)

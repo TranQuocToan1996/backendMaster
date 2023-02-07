@@ -6,7 +6,6 @@ import (
 	"time"
 
 	db "github.com/TranQuocToan1996/backendMaster/db/sqlc"
-	"github.com/TranQuocToan1996/backendMaster/token"
 	"github.com/TranQuocToan1996/backendMaster/util"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -112,9 +111,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessPayload := token.Payload{} // TODO: fix payload
-
-	accessToken, err := server.tokenMaker.CreateToken(
+	accessToken, accessPayload, err := server.tokenMaker.CreateToken(
 		user.Username,
 		server.config.AccessTokenDuration,
 	)
@@ -123,10 +120,9 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	refreshPayload := token.Payload{} // TODO: fix payload
-	refreshToken, err := server.tokenMaker.CreateToken(
+	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(
 		user.Username,
-		server.config.AccessTokenDuration, // TODO: fix duration
+		server.config.RefreshTokenDuration,
 	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
