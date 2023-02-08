@@ -70,7 +70,7 @@ func (s *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb
 
 			otps := []asynq.Option{
 				asynq.MaxRetry(10),
-				asynq.ProcessIn(10 * time.Second),
+				asynq.ProcessIn(10 * time.Second), // 10 sec for wait the transaction fully commit
 				asynq.Queue(worker.QueueCritical),
 			}
 
