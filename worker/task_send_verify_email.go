@@ -12,7 +12,7 @@ import (
 type PayloadSendVerifyEmail struct {
 	Username string `json:"username"`
 }
-
+ 
 func (r *RedisTaskDistributor) DistributeTaskSendEmail(ctx context.Context,
 	payload *PayloadSendVerifyEmail, opts ...asynq.Option) error {
 
